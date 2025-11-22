@@ -1,0 +1,189 @@
+import mysql.connector
+
+# -----------------------------------------------------
+# DATABASE CONNECTION
+# -----------------------------------------------------
+def connect_db():
+    return mysql.connector.connect(
+        host="localhost",
+        user="root",      # change if needed
+        password="",      # add your MySQL password
+        database="student_db"
+    )
+
+# -----------------------------------------------------
+# ADD STUDENT
+# -----------------------------------------------------
+def add_student():
+    print("\n--- Add Student ---")
+    name = input("Enter name: ")
+    age = int(input("Enter age: "))
+    dept = input("Enter department: ")
+    marks = float(input("Enter marks: "))
+
+    db = connect_db()
+    cursor = db.cursor()
+
+    sql = "INSERT INTO students (name, age, department, marks) VALUES (%s, %s, %s, %s)"
+    cursor.execute(sql, (name, age, dept, marks))
+    db.commit()
+
+    print("\n Student added successfully!\n")
+    db.close()
+
+# -----------------------------------------------------
+# VIEW ALL STUDENTS
+# -----------------------------------------------------
+def view_students():
+    print("\n--- All Students ---")
+    db = connect_db()
+    cursor = db.cursor()
+
+    cursor.execute("SELECT * FROM students")
+    rows = cursor.fetchall()
+
+    for row in rows:
+        print(row)
+
+    print()
+    db.close()
+
+# -----------------------------------------------------
+# UPDATE STUDENT
+# -----------------------------------------------------
+def update_student():
+    print("\n--- Update Student ---")
+    student_id = int(input("Enter student ID: "))
+
+    print("""
+1. Name
+2. Age
+3. Department
+4. Marks
+""")
+
+    choice = int(input("Select field to update: "))
+    field_map = {
+        1: "name",
+        2: "age",
+        3: "department",
+        4: "marks"
+    }
+
+    if choice not in field_map:
+        print("Invalid choice!")
+        return
+
+    new_val = input("Enter new value: ")
+
+    db = connect_db()
+    cursor = db.cursor()
+
+    sql = f"UPDATE students SET {field_map[choice]} = %s WHERE id = %s"
+    cursor.execute(sql, (new_val, student_id))
+    db.commit()
+
+    print("\n Student updated successfully!\n")
+    db.close()
+
+# -----------------------------------------------------
+# DELETE STUDENT
+# -----------------------------------------------------
+def delete_student():
+    print("\n--- Delete Student ---")
+    student_id = int(input("Enter student ID: "))
+
+    db = connect_db()
+    cursor = db.cursor()
+
+    sql = "DELETE FROM students WHERE id = %s"
+    cursor.execute(sql, (student_id,))
+    db.commit()
+
+    print("\n✔ Student deleted successfully!\n")
+    db.close()
+
+# -----------------------------------------------------
+# SEARCH STUDENT
+# -----------------------------------------------------
+def search_student():
+    print("\n--- Search Student ---")
+    keyword = input("Enter name/department keyword: ")
+
+    db = connect_db()
+    cursor = db.cursor()
+
+    sql = "SELECT * FROM students WHERE name LIKE %s OR department LIKE %s"
+    cursor.execute(sql, (f"%{keyword}%", f"%{keyword}%"))
+    rows = cursor.fetchall()
+
+    print("\n--- Results ---")
+    for row in rows:
+        print(row)
+
+    print()
+    db.close()
+
+# -----------------------------------------------------
+# FILTER BY DEPARTMENT
+# -----------------------------------------------------
+def filter_department():
+    print("\n--- Filter by Department ---")
+    dept = input("Enter department: ")
+
+    db = connect_db()
+    cursor = db.cursor()
+
+    sql = "SELECT * FROM students WHERE department = %s"
+    cursor.execute(sql, (dept,))
+    rows = cursor.fetchall()
+
+    print(f"\n--- Students in {dept} ---")
+    for row in rows:
+        print(row)
+
+    print()
+    db.close()
+
+# -----------------------------------------------------
+# MAIN MENU
+# -----------------------------------------------------
+def menu():
+    while True:
+        print("""
+=========================================
+      STUDENT MANAGEMENT SYSTEM
+=========================================
+1. Add Student
+2. View All Students
+3. Update Student
+4. Delete Student
+5. Search Student
+6. Filter by Department
+7. Exit
+""")
+
+        choice = input("Enter choice: ")
+
+        if choice == "1":
+            add_student()
+        elif choice == "2":
+            view_students()
+        elif choice == "3":
+            update_student()
+        elif choice == "4":
+            delete_student()
+        elif choice == "5":
+            search_student()
+        elif choice == "6":
+            filter_department()
+        elif choice == "7":
+            print("\nExiting... Goodbye!\n")
+            break
+        else:
+            print("\n Invalid choice, try again!\n")
+
+# -----------------------------------------------------
+# RUN PROGRAM
+# -----------------------------------------------------
+menu()
